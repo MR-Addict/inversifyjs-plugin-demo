@@ -22,10 +22,7 @@ container.bind<Container>(TYPES.Container).toConstantValue(container);
 container.bind<Document>(TYPES.Document).toConstantValue(document);
 container.bind<HTMLElement>(TYPES.RootElement).toConstantValue(root);
 container.bind<AppShell>(TYPES.AppShell).to(AppShell).inSingletonScope();
-container
-  .bind<CommandRegistry>(TYPES.CommandRegistry)
-  .to(CommandRegistry)
-  .inSingletonScope();
+container.bind<CommandRegistry>(TYPES.CommandRegistry).to(CommandRegistry).inSingletonScope();
 container.bind<SharedState>(TYPES.SharedState).to(SharedState).inSingletonScope();
 container.bind<EventBus>(TYPES.EventBus).to(EventBus).inSingletonScope();
 container.bind<Logger>(TYPES.Logger).to(Logger).inSingletonScope();
@@ -33,10 +30,7 @@ container.bind<PluginManager>(TYPES.PluginManager).to(PluginManager).inSingleton
 
 const shell = container.get<AppShell>(TYPES.AppShell);
 shell.mount(APP_NAME, APP_DESCRIPTION);
-shell.appendLog(
-  "info",
-  "Extension host bootstrapped. Load Greeter, then Dashboard, to watch plugins collaborate."
-);
+shell.appendLog("info", "Extension host bootstrapped. Load Greeter, then Dashboard, to watch plugins collaborate.");
 
 const pluginManager = container.get<PluginManager>(TYPES.PluginManager);
 
@@ -48,5 +42,5 @@ for (const entry of pluginCatalog) {
 
 shell.showNotice("Start with Greeter, then load Dashboard to see shared state and events in action.", {
   kind: "info",
-  timeoutMs: 4500
+  timeoutMs: 4500,
 });

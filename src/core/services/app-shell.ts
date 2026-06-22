@@ -7,7 +7,7 @@ import type {
   PluginMeta,
   PluginPanel,
   PluginPanelOptions,
-  UiApi
+  UiApi,
 } from "../contracts.js";
 import { TYPES } from "../tokens.js";
 
@@ -29,7 +29,7 @@ export class AppShell implements UiApi {
 
   public constructor(
     @inject(TYPES.Document) private readonly document: Document,
-    @inject(TYPES.RootElement) private readonly root: HTMLElement
+    @inject(TYPES.RootElement) private readonly root: HTMLElement,
   ) {}
 
   public mount(appName: string, description: string): void {
@@ -50,7 +50,7 @@ export class AppShell implements UiApi {
     titlebarMeta.append(
       this.create("span", "pill", "TypeScript host"),
       this.create("span", "pill", "Dynamic plugins"),
-      this.create("span", "pill", "InversifyJS ctx")
+      this.create("span", "pill", "InversifyJS ctx"),
     );
     titlebar.append(titlebarBrand, titlebarMeta);
 
@@ -64,27 +64,35 @@ export class AppShell implements UiApi {
     const sidebarCopy = this.create(
       "p",
       "section-copy",
-      "Load plugins like extensions. The host injects ctx services for commands, panels, events, shared state, and logging."
+      "Load plugins like extensions. The host injects ctx services for commands, panels, events, shared state, and logging.",
     );
     sidebarHeader.append(sidebarEyebrow, sidebarTitle, sidebarCopy);
 
     const guideSection = this.createSection(
       "Quick Start",
       "Use the same flow every time so the extension boundary stays obvious.",
-      "3 steps"
+      "3 steps",
     );
     const guideList = this.create("ol", "guide-list");
     guideList.append(
       this.create("li", "guide-list__item", "Load Greeter to publish greetings through shared host services."),
-      this.create("li", "guide-list__item", "Load Dashboard to observe the same events and state without direct coupling."),
-      this.create("li", "guide-list__item", "Trigger registered commands from the host toolbar to prove plugins can extend it.")
+      this.create(
+        "li",
+        "guide-list__item",
+        "Load Dashboard to observe the same events and state without direct coupling.",
+      ),
+      this.create(
+        "li",
+        "guide-list__item",
+        "Trigger registered commands from the host toolbar to prove plugins can extend it.",
+      ),
     );
     guideSection.body.append(guideList);
 
     const workspaceSection = this.createSection(
       "Workspace Files",
       "A simplified explorer view of the host application and plugin boundary.",
-      "src/"
+      "src/",
     );
     workspaceSection.body.append(
       this.createTree([
@@ -94,24 +102,19 @@ export class AppShell implements UiApi {
         { label: "plugin-catalog.ts", depth: 1, kind: "file" },
         { label: "plugins", depth: 1, kind: "folder" },
         { label: "greeter.plugin.ts", depth: 2, kind: "file" },
-        { label: "dashboard.plugin.ts", depth: 2, kind: "file" }
-      ])
+        { label: "dashboard.plugin.ts", depth: 2, kind: "file" },
+      ]),
     );
 
     const catalogSection = this.createSection(
       "Extensions",
       "Dynamic imports keep each plugin isolated until you explicitly load it.",
-      "Runtime catalog"
+      "Runtime catalog",
     );
     this.pluginCatalog = this.create("div", "plugin-grid");
     catalogSection.body.append(this.pluginCatalog);
 
-    sidebar.append(
-      sidebarHeader,
-      guideSection.element,
-      workspaceSection.element,
-      catalogSection.element
-    );
+    sidebar.append(sidebarHeader, guideSection.element, workspaceSection.element, catalogSection.element);
 
     const editor = this.create("main", "editor");
     const editorTop = this.create("div", "editor__top");
@@ -119,13 +122,9 @@ export class AppShell implements UiApi {
     editorTabs.append(
       this.createTab("host-workbench.ts", true),
       this.createTab("plugins.runtime.ts"),
-      this.createTab("output.log")
+      this.createTab("output.log"),
     );
-    const editorHint = this.create(
-      "span",
-      "editor__hint",
-      "Context-aware extension host"
-    );
+    const editorHint = this.create("span", "editor__hint", "Context-aware extension host");
     editorTop.append(editorTabs, editorHint);
 
     const editorCanvas = this.create("div", "editor__canvas");
@@ -133,46 +132,38 @@ export class AppShell implements UiApi {
     overview.append(
       this.createOverviewCard(
         "Load Extensions",
-        "Activate plugins on demand from the explorer instead of shipping everything eagerly."
+        "Activate plugins on demand from the explorer instead of shipping everything eagerly.",
       ),
       this.createOverviewCard(
         "Share Host Services",
-        "Each plugin receives the same ctx contract for UI, commands, events, state, and logging."
+        "Each plugin receives the same ctx contract for UI, commands, events, state, and logging.",
       ),
       this.createOverviewCard(
         "Observe Collaboration",
-        "Greeter publishes host events while Dashboard reacts in real time without importing it directly."
-      )
+        "Greeter publishes host events while Dashboard reacts in real time without importing it directly.",
+      ),
     );
 
     const commandSection = this.createSection(
       "Command Palette",
       "Active plugins can register toolbar commands through ctx.commands.register(...).",
-      "Live toolbar"
+      "Live toolbar",
     );
-    this.commandEmptyState = this.create(
-      "p",
-      "empty-state",
-      "Load a plugin to expose host commands here."
-    );
+    this.commandEmptyState = this.create("p", "empty-state", "Load a plugin to expose host commands here.");
     this.commandBar = this.create("div", "command-bar");
     commandSection.body.append(this.commandEmptyState, this.commandBar);
 
     const panelSection = this.createSection(
       "Editor Group",
       "Panels created by plugins mount here with plain DOM APIs.",
-      "Plugin panels"
+      "Plugin panels",
     );
     this.panelEmptyState = this.create("div", "panel-empty");
-    const panelEmptyTitle = this.create(
-      "strong",
-      "panel-empty__title",
-      "No active plugin panels"
-    );
+    const panelEmptyTitle = this.create("strong", "panel-empty__title", "No active plugin panels");
     const panelEmptyCopy = this.create(
       "p",
       "muted",
-      "Load Greeter first, then Dashboard, to watch plugins share state and events inside the workbench."
+      "Load Greeter first, then Dashboard, to watch plugins share state and events inside the workbench.",
     );
     this.panelEmptyState.append(panelEmptyTitle, panelEmptyCopy);
     this.panelHost = this.create("div", "panel-host");
@@ -181,7 +172,7 @@ export class AppShell implements UiApi {
     const capabilitySection = this.createSection(
       "ctx API Surface",
       "Every plugin receives the same host contract, similar to an editor extension API.",
-      "Stable contract"
+      "Stable contract",
     );
     const capabilityGrid = this.create("div", "capability-grid");
     capabilityGrid.append(
@@ -189,16 +180,11 @@ export class AppShell implements UiApi {
       this.createCapabilityCard("ctx.commands", "Register host commands that appear in the toolbar."),
       this.createCapabilityCard("ctx.events", "Publish and subscribe to host-wide domain events."),
       this.createCapabilityCard("ctx.state", "Read and react to shared host state without direct plugin imports."),
-      this.createCapabilityCard("ctx.logger", "Write plugin-originated messages into the host output panel.")
+      this.createCapabilityCard("ctx.logger", "Write plugin-originated messages into the host output panel."),
     );
     capabilitySection.body.append(capabilityGrid);
 
-    editorCanvas.append(
-      overview,
-      commandSection.element,
-      panelSection.element,
-      capabilitySection.element
-    );
+    editorCanvas.append(overview, commandSection.element, panelSection.element, capabilitySection.element);
 
     const outputPanel = this.create("section", "output-panel");
     const outputHeader = this.create("div", "output-panel__header");
@@ -208,7 +194,7 @@ export class AppShell implements UiApi {
     const outputCopy = this.create(
       "p",
       "section-copy",
-      "Plugin lifecycle events and plugin-originated messages are appended here."
+      "Plugin lifecycle events and plugin-originated messages are appended here.",
     );
     outputTitleGroup.append(outputEyebrow, outputTitle, outputCopy);
     outputHeader.append(outputTitleGroup, this.create("span", "pill", "Activity log"));
@@ -222,18 +208,14 @@ export class AppShell implements UiApi {
     const statusLeft = this.create("div", "status-bar__group");
     statusLeft.append(
       this.create("span", "status-bar__item status-bar__item--emphasis", "Extension host ready"),
-      this.create("span", "status-bar__item", "TypeScript + DOM runtime")
+      this.create("span", "status-bar__item", "TypeScript + DOM runtime"),
     );
 
     const statusRight = this.create("div", "status-bar__group");
     this.loadedCountItem = this.create("span", "status-bar__item", "0 plugins loaded");
     this.commandCountItem = this.create("span", "status-bar__item", "0 commands");
     this.panelCountItem = this.create("span", "status-bar__item", "0 panels");
-    statusRight.append(
-      this.loadedCountItem,
-      this.commandCountItem,
-      this.panelCountItem
-    );
+    statusRight.append(this.loadedCountItem, this.commandCountItem, this.panelCountItem);
     statusBar.append(statusLeft, statusRight);
 
     this.noticeHost = this.create("div", "notice-stack");
@@ -243,11 +225,7 @@ export class AppShell implements UiApi {
     this.refreshWorkbenchStats();
   }
 
-  public addPluginCard(
-    meta: PluginMeta,
-    initialLoaded: boolean,
-    onToggle: () => Promise<boolean>
-  ): void {
+  public addPluginCard(meta: PluginMeta, initialLoaded: boolean, onToggle: () => Promise<boolean>): void {
     const card = this.create("article", "plugin-card");
     const header = this.create("div", "plugin-card__header");
     const titleBlock = this.create("div", "plugin-card__title-block");
@@ -257,11 +235,7 @@ export class AppShell implements UiApi {
     titleBlock.append(title, pluginId);
     header.append(titleBlock, status);
 
-    const description = this.create(
-      "p",
-      "plugin-card__description",
-      meta.description
-    );
+    const description = this.create("p", "plugin-card__description", meta.description);
     const button = this.create("button", "button button--ghost", "Load plugin");
     button.type = "button";
 
@@ -271,9 +245,7 @@ export class AppShell implements UiApi {
     const syncState = (): void => {
       this.pluginStates.set(meta.id, loaded);
       status.textContent = loaded ? "Loaded" : "Not loaded";
-      status.className = loaded
-        ? "plugin-card__status plugin-card__status--loaded"
-        : "plugin-card__status";
+      status.className = loaded ? "plugin-card__status plugin-card__status--loaded" : "plugin-card__status";
       button.textContent = loaded ? "Unload plugin" : "Load plugin";
       this.refreshWorkbenchStats();
     };
@@ -310,7 +282,7 @@ export class AppShell implements UiApi {
         button.remove();
         this.commandButtons.delete(command.id);
         this.refreshWorkbenchStats();
-      }
+      },
     };
   }
 
@@ -325,11 +297,7 @@ export class AppShell implements UiApi {
     const status = this.create("span", "plugin-panel__status", "Ready");
     header.append(title, status);
 
-    const description = this.create(
-      "p",
-      "plugin-panel__description",
-      options.description
-    );
+    const description = this.create("p", "plugin-panel__description", options.description);
     const body = this.create("div", "plugin-panel__body");
     panel.append(header, description, body);
     this.panelHost.append(panel);
@@ -349,7 +317,7 @@ export class AppShell implements UiApi {
         panel.remove();
         this.panels.delete(options.id);
         this.refreshWorkbenchStats();
-      }
+      },
     };
 
     this.panels.set(options.id, handle);
@@ -358,11 +326,7 @@ export class AppShell implements UiApi {
   }
 
   public showNotice(message: string, options: NoticeOptions = {}): void {
-    const notice = this.create(
-      "div",
-      `notice notice--${options.kind ?? "info"}`,
-      message
-    );
+    const notice = this.create("div", `notice notice--${options.kind ?? "info"}`, message);
     const timeoutMs = options.timeoutMs ?? 3200;
 
     this.noticeHost.prepend(notice);
@@ -373,16 +337,8 @@ export class AppShell implements UiApi {
 
   public appendLog(level: "info" | "warn", message: string): void {
     const item = this.create("li", "log-item");
-    const levelBadge = this.create(
-      "span",
-      level === "warn" ? "log-level log-level--warn" : "log-level",
-      level
-    );
-    const time = this.create(
-      "span",
-      "log-time",
-      new Date().toLocaleTimeString()
-    );
+    const levelBadge = this.create("span", level === "warn" ? "log-level log-level--warn" : "log-level", level);
+    const time = this.create("span", "log-time", new Date().toLocaleTimeString());
     const text = this.create("span", "", message);
 
     item.append(levelBadge, time, text);
@@ -396,7 +352,7 @@ export class AppShell implements UiApi {
   private createSection(
     titleText: string,
     copyText: string,
-    badgeText?: string
+    badgeText?: string,
   ): {
     element: HTMLElement;
     body: HTMLDivElement;
@@ -425,23 +381,17 @@ export class AppShell implements UiApi {
     activityBar.append(
       this.createActivityButton("EX", "Explorer", true),
       this.createActivityButton("PL", "Plugins"),
-      this.createActivityButton("OUT", "Output")
+      this.createActivityButton("OUT", "Output"),
     );
 
     return activityBar;
   }
 
-  private createActivityButton(
-    shortLabel: string,
-    description: string,
-    active = false
-  ): HTMLButtonElement {
+  private createActivityButton(shortLabel: string, description: string, active = false): HTMLButtonElement {
     const button = this.create(
       "button",
-      active
-        ? "activity-bar__button activity-bar__button--active"
-        : "activity-bar__button",
-      shortLabel
+      active ? "activity-bar__button activity-bar__button--active" : "activity-bar__button",
+      shortLabel,
     );
     button.type = "button";
     button.setAttribute("aria-label", description);
@@ -450,11 +400,7 @@ export class AppShell implements UiApi {
   }
 
   private createTab(label: string, active = false): HTMLSpanElement {
-    return this.create(
-      "span",
-      active ? "editor-tab editor-tab--active" : "editor-tab",
-      label
-    );
+    return this.create("span", active ? "editor-tab editor-tab--active" : "editor-tab", label);
   }
 
   private createOverviewCard(titleText: string, copyText: string): HTMLDivElement {
@@ -479,16 +425,12 @@ export class AppShell implements UiApi {
       depth: number;
       kind: "file" | "folder";
       active?: boolean;
-    }>
+    }>,
   ): HTMLDivElement {
     const tree = this.create("div", "tree");
 
     for (const entry of entries) {
-      const row = this.create(
-        "div",
-        entry.active ? "tree-row tree-row--active" : "tree-row",
-        entry.label
-      );
+      const row = this.create("div", entry.active ? "tree-row tree-row--active" : "tree-row", entry.label);
       row.style.setProperty("--tree-depth", String(entry.depth));
       row.dataset.icon = entry.kind === "folder" ? "▸" : "•";
       tree.append(row);
@@ -513,7 +455,7 @@ export class AppShell implements UiApi {
   private create<K extends keyof HTMLElementTagNameMap>(
     tagName: K,
     className: string,
-    textContent?: string
+    textContent?: string,
   ): HTMLElementTagNameMap[K] {
     const element = this.document.createElement(tagName);
 

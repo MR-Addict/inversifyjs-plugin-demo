@@ -1,7 +1,6 @@
 :root {
   color-scheme: dark;
-  font-family: "IBM Plex Sans", "Segoe UI", "Helvetica Neue", Arial,
-    sans-serif;
+  font-family: "IBM Plex Sans", "Segoe UI", "Helvetica Neue", Arial, sans-serif;
   --font-mono: "IBM Plex Mono", "SFMono-Regular", Consolas, monospace;
   --bg-page: #0e1117;
   --bg-shell: #161a21;
@@ -160,7 +159,10 @@ input {
   color: var(--text-muted);
   padding: 12px 0;
   cursor: default;
-  transition: background 120ms ease, color 120ms ease, border-color 120ms ease;
+  transition:
+    background 120ms ease,
+    color 120ms ease,
+    border-color 120ms ease;
 }
 
 .activity-bar__button:hover,
@@ -226,8 +228,7 @@ input {
 }
 
 .editor-tab--active {
-  background: linear-gradient(180deg, rgba(34, 40, 49, 0.96), transparent 90%),
-    var(--bg-editor);
+  background: linear-gradient(180deg, rgba(34, 40, 49, 0.96), transparent 90%), var(--bg-editor);
   color: var(--text);
 }
 
@@ -422,8 +423,11 @@ input {
   padding: 10px 14px;
   cursor: pointer;
   color: var(--text);
-  transition: transform 120ms ease, border-color 120ms ease,
-    background 120ms ease, opacity 120ms ease;
+  transition:
+    transform 120ms ease,
+    border-color 120ms ease,
+    background 120ms ease,
+    opacity 120ms ease;
 }
 
 .button:hover {
