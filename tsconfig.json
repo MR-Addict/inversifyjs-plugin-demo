@@ -1,0 +1,18 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "ES2022",
+    "moduleResolution": "Bundler",
+    "lib": ["DOM", "ES2022"],
+    "rootDir": "./src",
+    "outDir": "./dist",
+    "strict": true,
+    "noEmitOnError": true,
+    "skipLibCheck": true,
+    "verbatimModuleSyntax": true,
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+    "useDefineForClassFields": false
+  },
+  "include": ["src/**/*.ts"]
+}
