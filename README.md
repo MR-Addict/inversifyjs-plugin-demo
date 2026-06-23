@@ -9,13 +9,13 @@ A small browser demo that shows how to build a plugin-capable app with:
 ## Run the demo
 
 ```bash
-npm install
-npm run dev
+pnpm install
+pnpm dev
 ```
 
-Then open `http://localhost:4173`.
+Then open `http://localhost:5173`.
 
-For a production bundle, run `npm run build`. To preview the production build locally, run `npm run serve`.
+For a production bundle, run `pnpm run build`. To preview the production build locally, run `pnpm run serve`.
 
 ## What the demo shows
 

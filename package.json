@@ -1,8 +1,6 @@
 {
   "name": "inversifyjs-plugin-demo",
-  "version": "1.0.0",
-  "packageManager": "pnpm@11.8.0",
-  "private": true,
+  "packageManager": "pnpm@11.9.0",
   "description": "Pure TypeScript + DOM API plugin demo powered by InversifyJS",
   "type": "module",
   "scripts": {
@@ -11,14 +9,6 @@
     "serve": "vite preview",
     "dev": "vite"
   },
-  "keywords": [
-    "inversify",
-    "typescript",
-    "plugins",
-    "dom"
-  ],
-  "author": "",
-  "license": "ISC",
   "dependencies": {
     "inversify": "^8.1.1",
     "reflect-metadata": "^0.2.2"
