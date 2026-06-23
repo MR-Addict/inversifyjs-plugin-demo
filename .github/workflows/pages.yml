@@ -1,0 +1,40 @@
+name: pages
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Cache pnpm modules
+        uses: actions/cache@v4
+        with:
+          path: ./**/node_modules
+          key: ${{ runner.os }}-pnpm-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: ${{ runner.os }}-pnpm-
+
+      - uses: pnpm/action-setup@v4
+        name: Install pnpm
+        with:
+          run_install: true
+
+      - name: Build project
+        run: pnpm build
+
+      - name: Create public directory
+        run: mkdir -p public && cp styles.css public && cp index.html public && cp -r build public
+
+      - name: Deploy to github pages
+        uses: crazy-max/ghaction-github-pages@v4.2.0
+        with:
+          target_branch: gh-pages
+          build_dir: ./public
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
