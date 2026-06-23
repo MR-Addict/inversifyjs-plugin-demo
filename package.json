@@ -6,10 +6,10 @@
   "description": "Pure TypeScript + DOM API plugin demo powered by InversifyJS",
   "type": "module",
   "scripts": {
-    "build": "tsc --project tsconfig.json && node scripts/build.mjs",
+    "build": "vite build",
     "typecheck": "tsc --noEmit --project tsconfig.json",
-    "serve": "node scripts/dev-server.mjs",
-    "dev": "npm run build && npm run serve"
+    "serve": "vite preview",
+    "dev": "vite"
   },
   "keywords": [
     "inversify",
@@ -24,7 +24,7 @@
     "reflect-metadata": "^0.2.2"
   },
   "devDependencies": {
-    "esbuild": "^0.27.0",
-    "typescript": "^6.0.3"
+    "typescript": "^6.0.3",
+    "vite": "^8.1.0"
   }
 }
