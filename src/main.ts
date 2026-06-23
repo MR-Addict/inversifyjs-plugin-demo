@@ -26,6 +26,7 @@ container.bind<AppShell>(TYPES.AppShell).to(AppShell).inSingletonScope();
 container.bind<CommandRegistry>(TYPES.CommandRegistry).to(CommandRegistry).inSingletonScope();
 container.bind<SharedState>(TYPES.SharedState).to(SharedState).inSingletonScope();
 container.bind<EventBus>(TYPES.EventBus).to(EventBus).inSingletonScope();
+container.bind<Logger>(TYPES.Logger).to(Logger).inSingletonScope();
 container.bind<PluginManager>(TYPES.PluginManager).to(PluginManager).inSingletonScope();
 container.bind<WorkbenchLayoutStorage>(TYPES.WorkbenchLayoutStorage).to(WorkbenchLayoutStorage).inSingletonScope();
 
