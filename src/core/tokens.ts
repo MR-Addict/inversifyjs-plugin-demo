@@ -7,5 +7,6 @@ export const TYPES = {
   Logger: Symbol.for("Logger"),
   PluginManager: Symbol.for("PluginManager"),
   RootElement: Symbol.for("RootElement"),
-  SharedState: Symbol.for("SharedState")
+  SharedState: Symbol.for("SharedState"),
+  WorkbenchLayoutStorage: Symbol.for("WorkbenchLayoutStorage"),
 } as const;

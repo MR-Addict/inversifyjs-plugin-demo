@@ -8,6 +8,7 @@ import { EventBus } from "./core/services/event-bus.js";
 import { Logger } from "./core/services/logger.js";
 import { PluginManager } from "./core/services/plugin-manager.js";
 import { SharedState } from "./core/services/shared-state.js";
+import { WorkbenchLayoutStorage } from "./core/services/workbench-layout-storage.js";
 import { TYPES } from "./core/tokens.js";
 import { pluginCatalog } from "./plugin-catalog.js";
 
@@ -25,8 +26,8 @@ container.bind<AppShell>(TYPES.AppShell).to(AppShell).inSingletonScope();
 container.bind<CommandRegistry>(TYPES.CommandRegistry).to(CommandRegistry).inSingletonScope();
 container.bind<SharedState>(TYPES.SharedState).to(SharedState).inSingletonScope();
 container.bind<EventBus>(TYPES.EventBus).to(EventBus).inSingletonScope();
-container.bind<Logger>(TYPES.Logger).to(Logger).inSingletonScope();
 container.bind<PluginManager>(TYPES.PluginManager).to(PluginManager).inSingletonScope();
+container.bind<WorkbenchLayoutStorage>(TYPES.WorkbenchLayoutStorage).to(WorkbenchLayoutStorage).inSingletonScope();
 
 const shell = container.get<AppShell>(TYPES.AppShell);
 shell.mount(APP_NAME, APP_DESCRIPTION);

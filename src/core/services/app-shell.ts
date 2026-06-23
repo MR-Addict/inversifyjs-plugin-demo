@@ -10,218 +10,88 @@ import type {
   UiApi,
 } from "../contracts.js";
 import { TYPES } from "../tokens.js";
+import {
+  getDefaultWorkbenchLayoutState,
+  mergeWorkbenchLayoutState,
+  type WorkbenchLayoutState,
+  WorkbenchLayoutStorage,
+} from "./workbench-layout-storage.js";
+
+type SidebarSide = "left" | "right";
 
 @injectable()
 export class AppShell implements UiApi {
   private readonly commandButtons = new Map<string, HTMLButtonElement>();
+  private layoutState: WorkbenchLayoutState = getDefaultWorkbenchLayoutState();
   private readonly panels = new Map<string, PluginPanel>();
   private readonly pluginStates = new Map<string, boolean>();
+  private auxGroupCountItem!: HTMLElement;
+  private auxPanelStateItem!: HTMLElement;
+  private auxSidebarStateItem!: HTMLElement;
+  private bottomPanel!: HTMLElement;
+  private bottomResizeHandle!: HTMLDivElement;
+  private centerStage!: HTMLDivElement;
   private commandBar!: HTMLDivElement;
   private commandEmptyState!: HTMLParagraphElement;
+  private commandCountItem!: HTMLSpanElement;
+  private editorGroups!: HTMLDivElement;
+  private layoutCountItem!: HTMLSpanElement;
+  private leftResizeHandle!: HTMLDivElement;
+  private leftSidebar!: HTMLElement;
+  private loadedCountItem!: HTMLSpanElement;
   private logList!: HTMLUListElement;
   private noticeHost!: HTMLDivElement;
-  private loadedCountItem!: HTMLSpanElement;
-  private commandCountItem!: HTMLSpanElement;
   private panelCountItem!: HTMLSpanElement;
   private panelEmptyState!: HTMLDivElement;
   private panelHost!: HTMLDivElement;
   private pluginCatalog!: HTMLDivElement;
+  private rightResizeHandle!: HTMLDivElement;
+  private rightSidebar!: HTMLElement;
+  private secondaryEditorGroup!: HTMLElement;
+  private splitEditorButton!: HTMLButtonElement;
+  private toggleBottomPanelButton!: HTMLButtonElement;
+  private toggleLeftSidebarButton!: HTMLButtonElement;
+  private toggleRightSidebarButton!: HTMLButtonElement;
+  private workbenchBody!: HTMLDivElement;
 
   public constructor(
     @inject(TYPES.Document) private readonly document: Document,
     @inject(TYPES.RootElement) private readonly root: HTMLElement,
+    @inject(TYPES.WorkbenchLayoutStorage)
+    private readonly layoutStorage: WorkbenchLayoutStorage,
   ) {}
 
   public mount(appName: string, description: string): void {
+    this.layoutState = this.layoutStorage.load();
     this.root.replaceChildren();
     this.commandButtons.clear();
     this.panels.clear();
     this.pluginStates.clear();
 
     const shell = this.create("div", "workbench");
-    const titlebar = this.create("header", "titlebar");
-    const titlebarBrand = this.create("div", "titlebar__brand");
-    const eyebrow = this.create("span", "titlebar__eyebrow", "Extension Host Demo");
-    const title = this.create("h1", "titlebar__title", appName);
-    const copy = this.create("p", "titlebar__description", description);
-    titlebarBrand.append(eyebrow, title, copy);
-
-    const titlebarMeta = this.create("div", "titlebar__meta");
-    titlebarMeta.append(
-      this.create("span", "pill", "TypeScript host"),
-      this.create("span", "pill", "Dynamic plugins"),
-      this.create("span", "pill", "InversifyJS ctx"),
-    );
-    titlebar.append(titlebarBrand, titlebarMeta);
-
-    const frame = this.create("div", "workbench__frame");
-    frame.append(this.createActivityBar());
-
-    const sidebar = this.create("aside", "sidebar");
-    const sidebarHeader = this.create("div", "sidebar__header");
-    const sidebarEyebrow = this.create("span", "sidebar__eyebrow", "Explorer");
-    const sidebarTitle = this.create("h2", "sidebar__title", "Plugin Workbench");
-    const sidebarCopy = this.create(
-      "p",
-      "section-copy",
-      "Load plugins like extensions. The host injects ctx services for commands, panels, events, shared state, and logging.",
-    );
-    sidebarHeader.append(sidebarEyebrow, sidebarTitle, sidebarCopy);
-
-    const guideSection = this.createSection(
-      "Quick Start",
-      "Use the same flow every time so the extension boundary stays obvious.",
-      "3 steps",
-    );
-    const guideList = this.create("ol", "guide-list");
-    guideList.append(
-      this.create("li", "guide-list__item", "Load Greeter to publish greetings through shared host services."),
-      this.create(
-        "li",
-        "guide-list__item",
-        "Load Dashboard to observe the same events and state without direct coupling.",
-      ),
-      this.create(
-        "li",
-        "guide-list__item",
-        "Trigger registered commands from the host toolbar to prove plugins can extend it.",
-      ),
-    );
-    guideSection.body.append(guideList);
-
-    const workspaceSection = this.createSection(
-      "Workspace Files",
-      "A simplified explorer view of the host application and plugin boundary.",
-      "src/",
-    );
-    workspaceSection.body.append(
-      this.createTree([
-        { label: "src", depth: 0, kind: "folder" },
-        { label: "core", depth: 1, kind: "folder" },
-        { label: "services/app-shell.ts", depth: 2, kind: "file", active: true },
-        { label: "plugin-catalog.ts", depth: 1, kind: "file" },
-        { label: "plugins", depth: 1, kind: "folder" },
-        { label: "greeter.plugin.ts", depth: 2, kind: "file" },
-        { label: "dashboard.plugin.ts", depth: 2, kind: "file" },
-      ]),
+    const navbar = this.createNavbar(appName, description);
+    this.workbenchBody = this.create("div", "workbench__body");
+    this.leftSidebar = this.createLeftSidebar();
+    this.leftResizeHandle = this.createResizeHandle("vertical", "Resize left sidebar");
+    this.centerStage = this.createCenterStage();
+    this.rightResizeHandle = this.createResizeHandle("vertical", "Resize right sidebar");
+    this.rightSidebar = this.createRightSidebar();
+    this.workbenchBody.append(
+      this.leftSidebar,
+      this.leftResizeHandle,
+      this.centerStage,
+      this.rightResizeHandle,
+      this.rightSidebar,
     );
 
-    const catalogSection = this.createSection(
-      "Extensions",
-      "Dynamic imports keep each plugin isolated until you explicitly load it.",
-      "Runtime catalog",
-    );
-    this.pluginCatalog = this.create("div", "plugin-grid");
-    catalogSection.body.append(this.pluginCatalog);
-
-    sidebar.append(sidebarHeader, guideSection.element, workspaceSection.element, catalogSection.element);
-
-    const editor = this.create("main", "editor");
-    const editorTop = this.create("div", "editor__top");
-    const editorTabs = this.create("div", "editor-tabs");
-    editorTabs.append(
-      this.createTab("host-workbench.ts", true),
-      this.createTab("plugins.runtime.ts"),
-      this.createTab("output.log"),
-    );
-    const editorHint = this.create("span", "editor__hint", "Context-aware extension host");
-    editorTop.append(editorTabs, editorHint);
-
-    const editorCanvas = this.create("div", "editor__canvas");
-    const overview = this.create("div", "overview-grid");
-    overview.append(
-      this.createOverviewCard(
-        "Load Extensions",
-        "Activate plugins on demand from the explorer instead of shipping everything eagerly.",
-      ),
-      this.createOverviewCard(
-        "Share Host Services",
-        "Each plugin receives the same ctx contract for UI, commands, events, state, and logging.",
-      ),
-      this.createOverviewCard(
-        "Observe Collaboration",
-        "Greeter publishes host events while Dashboard reacts in real time without importing it directly.",
-      ),
-    );
-
-    const commandSection = this.createSection(
-      "Command Palette",
-      "Active plugins can register toolbar commands through ctx.commands.register(...).",
-      "Live toolbar",
-    );
-    this.commandEmptyState = this.create("p", "empty-state", "Load a plugin to expose host commands here.");
-    this.commandBar = this.create("div", "command-bar");
-    commandSection.body.append(this.commandEmptyState, this.commandBar);
-
-    const panelSection = this.createSection(
-      "Editor Group",
-      "Panels created by plugins mount here with plain DOM APIs.",
-      "Plugin panels",
-    );
-    this.panelEmptyState = this.create("div", "panel-empty");
-    const panelEmptyTitle = this.create("strong", "panel-empty__title", "No active plugin panels");
-    const panelEmptyCopy = this.create(
-      "p",
-      "muted",
-      "Load Greeter first, then Dashboard, to watch plugins share state and events inside the workbench.",
-    );
-    this.panelEmptyState.append(panelEmptyTitle, panelEmptyCopy);
-    this.panelHost = this.create("div", "panel-host");
-    panelSection.body.append(this.panelEmptyState, this.panelHost);
-
-    const capabilitySection = this.createSection(
-      "ctx API Surface",
-      "Every plugin receives the same host contract, similar to an editor extension API.",
-      "Stable contract",
-    );
-    const capabilityGrid = this.create("div", "capability-grid");
-    capabilityGrid.append(
-      this.createCapabilityCard("ctx.ui", "Create panels, notices, and shell-visible UI affordances."),
-      this.createCapabilityCard("ctx.commands", "Register host commands that appear in the toolbar."),
-      this.createCapabilityCard("ctx.events", "Publish and subscribe to host-wide domain events."),
-      this.createCapabilityCard("ctx.state", "Read and react to shared host state without direct plugin imports."),
-      this.createCapabilityCard("ctx.logger", "Write plugin-originated messages into the host output panel."),
-    );
-    capabilitySection.body.append(capabilityGrid);
-
-    editorCanvas.append(overview, commandSection.element, panelSection.element, capabilitySection.element);
-
-    const outputPanel = this.create("section", "output-panel");
-    const outputHeader = this.create("div", "output-panel__header");
-    const outputTitleGroup = this.create("div", "output-panel__title-group");
-    const outputEyebrow = this.create("span", "output-panel__eyebrow", "Panel");
-    const outputTitle = this.create("h2", "section-title", "Output");
-    const outputCopy = this.create(
-      "p",
-      "section-copy",
-      "Plugin lifecycle events and plugin-originated messages are appended here.",
-    );
-    outputTitleGroup.append(outputEyebrow, outputTitle, outputCopy);
-    outputHeader.append(outputTitleGroup, this.create("span", "pill", "Activity log"));
-    this.logList = this.create("ul", "log-list");
-    outputPanel.append(outputHeader, this.logList);
-
-    editor.append(editorTop, editorCanvas, outputPanel);
-    frame.append(sidebar, editor);
-
-    const statusBar = this.create("footer", "status-bar");
-    const statusLeft = this.create("div", "status-bar__group");
-    statusLeft.append(
-      this.create("span", "status-bar__item status-bar__item--emphasis", "Extension host ready"),
-      this.create("span", "status-bar__item", "TypeScript + DOM runtime"),
-    );
-
-    const statusRight = this.create("div", "status-bar__group");
-    this.loadedCountItem = this.create("span", "status-bar__item", "0 plugins loaded");
-    this.commandCountItem = this.create("span", "status-bar__item", "0 commands");
-    this.panelCountItem = this.create("span", "status-bar__item", "0 panels");
-    statusRight.append(this.loadedCountItem, this.commandCountItem, this.panelCountItem);
-    statusBar.append(statusLeft, statusRight);
-
+    const statusBar = this.createStatusBar();
     this.noticeHost = this.create("div", "notice-stack");
 
-    shell.append(titlebar, frame, statusBar);
+    shell.append(navbar, this.workbenchBody, statusBar);
     this.root.append(shell, this.noticeHost);
+    this.bindResizeHandles();
+    this.applyLayoutState();
+    this.appendLog("info", "Browser workbench shell initialized. Use the sidebar to load internal extensions.");
     this.refreshWorkbenchStats();
   }
 
@@ -349,6 +219,480 @@ export class AppShell implements UiApi {
     }
   }
 
+  private createNavbar(appName: string, description: string): HTMLElement {
+    const navbar = this.create("header", "navbar");
+    const brand = this.create("div", "navbar__brand");
+    const eyebrow = this.create("span", "navbar__eyebrow", "Browser IDE Workbench");
+    const title = this.create("h1", "navbar__title", appName);
+    const copy = this.create("p", "navbar__description", description);
+    const meta = this.create("div", "navbar__meta");
+
+    meta.append(
+      this.create("span", "pill", "InversifyJS composition"),
+      this.create("span", "pill", "Shell-first editor"),
+      this.create("span", "pill", "Internal extensions"),
+    );
+    brand.append(eyebrow, title, copy, meta);
+
+    const commandDeck = this.create("div", "command-strip");
+    const commandDeckHeader = this.create("div", "command-strip__header");
+    commandDeckHeader.append(
+      this.create("span", "navbar__eyebrow", "Command Deck"),
+      this.create("span", "pill", "Contribution surface"),
+    );
+    this.commandEmptyState = this.create(
+      "p",
+      "command-strip__empty",
+      "Load an extension to contribute editor actions here.",
+    );
+    this.commandBar = this.create("div", "command-bar");
+    commandDeck.append(commandDeckHeader, this.commandEmptyState, this.commandBar);
+
+    const controls = this.create("div", "navbar__controls");
+    this.toggleLeftSidebarButton = this.createWorkbenchActionButton("Left", "Toggle left sidebar", () => {
+      this.updateLayoutState({
+        leftSidebarVisible: !this.layoutState.leftSidebarVisible,
+      });
+    });
+    this.toggleBottomPanelButton = this.createWorkbenchActionButton("Panel", "Toggle bottom panel", () => {
+      this.updateLayoutState({
+        bottomPanelVisible: !this.layoutState.bottomPanelVisible,
+      });
+    });
+    this.toggleRightSidebarButton = this.createWorkbenchActionButton("Right", "Toggle right sidebar", () => {
+      this.updateLayoutState({
+        rightSidebarVisible: !this.layoutState.rightSidebarVisible,
+      });
+    });
+    this.splitEditorButton = this.createWorkbenchActionButton("Split", "Toggle split editor groups", () => {
+      this.updateLayoutState({
+        editorGroupCount: this.layoutState.editorGroupCount === 2 ? 1 : 2,
+      });
+    });
+    controls.append(
+      this.toggleLeftSidebarButton,
+      this.toggleBottomPanelButton,
+      this.toggleRightSidebarButton,
+      this.splitEditorButton,
+    );
+
+    navbar.append(brand, commandDeck, controls);
+    return navbar;
+  }
+
+  private createLeftSidebar(): HTMLElement {
+    const sidebar = this.create("aside", "workbench-sidebar");
+    const rail = this.create("div", "workbench-sidebar__rail");
+    rail.append(
+      this.createSidebarViewButton("EX", "Explorer", true),
+      this.createSidebarViewButton("XT", "Extensions"),
+      this.createSidebarViewButton("SC", "Source control"),
+    );
+
+    const content = this.create("div", "workbench-sidebar__content");
+    const header = this.create("div", "sidebar__header");
+    const eyebrow = this.create("span", "sidebar__eyebrow", "Primary Sidebar");
+    const title = this.create("h2", "sidebar__title", "Explorer");
+    const copy = this.create(
+      "p",
+      "section-copy",
+      "Use the left sidebar for the workspace tree, extension catalog, and shell-first navigation.",
+    );
+    header.append(eyebrow, title, copy);
+
+    const workspaceSection = this.createSection(
+      "Workspace",
+      "The new workbench is separated into platform, workbench, and extension responsibilities.",
+      "src/",
+    );
+    workspaceSection.body.append(
+      this.createTree([
+        { label: "src", depth: 0, kind: "folder" },
+        { label: "core", depth: 1, kind: "folder" },
+        { label: "services/app-shell.ts", depth: 2, kind: "file", active: true },
+        { label: "services/workbench-layout-storage.ts", depth: 2, kind: "file" },
+        { label: "plugins", depth: 1, kind: "folder" },
+        { label: "greeter.plugin.ts", depth: 2, kind: "file" },
+        { label: "dashboard.plugin.ts", depth: 2, kind: "file" },
+      ]),
+    );
+
+    const extensionsSection = this.createSection(
+      "Extensions",
+      "Internal extensions still load dynamically, but the shell now looks and behaves like an IDE workbench.",
+      "Runtime catalog",
+    );
+    this.pluginCatalog = this.create("div", "plugin-grid");
+    extensionsSection.body.append(this.pluginCatalog);
+
+    const guideSection = this.createSection(
+      "Phase 1",
+      "Stabilize layout, contributions, and shell ergonomics before adding Monaco or a file system.",
+      "Current",
+    );
+    const guideList = this.create("ol", "guide-list");
+    guideList.append(
+      this.create("li", "guide-list__item", "Toggle left, bottom, and right workbench regions from the navbar."),
+      this.create("li", "guide-list__item", "Resize the sidebars and bottom panel to shape the IDE layout."),
+      this.create(
+        "li",
+        "guide-list__item",
+        "Split the editor area to validate multi-group behavior before a real editor engine lands.",
+      ),
+    );
+    guideSection.body.append(guideList);
+
+    content.append(header, workspaceSection.element, extensionsSection.element, guideSection.element);
+    sidebar.append(rail, content);
+    return sidebar;
+  }
+
+  private createCenterStage(): HTMLDivElement {
+    const centerStage = this.create("div", "workbench__center");
+    const editorStage = this.create("section", "editor-stage");
+    const editorHeader = this.create("div", "editor-stage__header");
+    const editorTabs = this.create("div", "editor-tabs");
+    editorTabs.append(
+      this.createTab("workbench.layout.ts", true),
+      this.createTab("extensions.runtime.ts"),
+      this.createTab("output.channel.log"),
+    );
+    const editorMeta = this.create("div", "editor-stage__meta");
+    editorMeta.append(
+      this.create("span", "pill", "Mock editor content"),
+      this.create("span", "pill", "Split-capable groups"),
+    );
+    editorHeader.append(editorTabs, editorMeta);
+
+    this.editorGroups = this.create("div", "editor-groups");
+    this.editorGroups.append(this.createPrimaryEditorGroup(), this.createSecondaryEditorGroup());
+    editorStage.append(editorHeader, this.editorGroups);
+
+    this.bottomResizeHandle = this.createResizeHandle("horizontal", "Resize bottom panel");
+    this.bottomPanel = this.createBottomPanel();
+    centerStage.append(editorStage, this.bottomResizeHandle, this.bottomPanel);
+    return centerStage;
+  }
+
+  private createPrimaryEditorGroup(): HTMLElement {
+    const group = this.create("section", "editor-group");
+    const header = this.create("div", "editor-group__header");
+    const titleBlock = this.create("div", "editor-group__title-block");
+    const title = this.create("h2", "section-title", "Editor Group 1");
+    const copy = this.create(
+      "p",
+      "section-copy",
+      "Extension panels still mount here, but the surrounding shell is now aligned to an IDE layout.",
+    );
+    titleBlock.append(title, copy);
+    header.append(titleBlock, this.create("span", "pill", "Primary"));
+
+    const body = this.create("div", "editor-group__body");
+    const welcome = this.create("section", "editor-welcome");
+    const welcomeEyebrow = this.create("span", "sidebar__eyebrow", "Workbench Overview");
+    const welcomeTitle = this.create("h3", "editor-welcome__title", "Shell-first editor region");
+    const welcomeCopy = this.create(
+      "p",
+      "editor-welcome__copy",
+      "This area is intentionally using mock editor content while the layout, contribution model, and lifecycle APIs stabilize.",
+    );
+    welcome.append(welcomeEyebrow, welcomeTitle, welcomeCopy);
+
+    const overview = this.create("div", "overview-grid");
+    overview.append(
+      this.createOverviewCard(
+        "Persist Layout",
+        "Sidebar widths, bottom panel height, and split-group mode survive reloads through the new layout storage service.",
+      ),
+      this.createOverviewCard(
+        "Keep Plugins Running",
+        "The current ctx.ui, ctx.commands, ctx.events, ctx.state, and ctx.logger surfaces still work while the workbench evolves.",
+      ),
+      this.createOverviewCard(
+        "Prepare VS Code-style APIs",
+        "This shell gives us stable regions for future commands, menus, views, status items, and editor contributions.",
+      ),
+    );
+
+    this.panelEmptyState = this.create("div", "panel-empty");
+    const panelEmptyTitle = this.create("strong", "panel-empty__title", "No active editor contributions");
+    const panelEmptyCopy = this.create(
+      "p",
+      "muted",
+      "Load Greeter first, then Dashboard, to populate this editor region with extension-owned panels.",
+    );
+    this.panelEmptyState.append(panelEmptyTitle, panelEmptyCopy);
+
+    this.panelHost = this.create("div", "panel-host");
+    body.append(welcome, overview, this.panelEmptyState, this.panelHost);
+    group.append(header, body);
+    return group;
+  }
+
+  private createSecondaryEditorGroup(): HTMLElement {
+    const group = this.create("section", "editor-group editor-group--secondary");
+    const header = this.create("div", "editor-group__header");
+    const titleBlock = this.create("div", "editor-group__title-block");
+    const title = this.create("h2", "section-title", "Editor Group 2");
+    const copy = this.create("p", "section-copy", "Reserved for future preview, diff, or auxiliary editor surfaces.");
+    titleBlock.append(title, copy);
+    header.append(titleBlock, this.create("span", "pill", "Secondary"));
+
+    const body = this.create("div", "editor-group__body");
+    const placeholder = this.create("div", "editor-placeholder");
+    placeholder.append(
+      this.create("span", "sidebar__eyebrow", "Split Ready"),
+      this.create("h3", "editor-welcome__title", "Second editor group is available"),
+      this.create(
+        "p",
+        "editor-welcome__copy",
+        "Keep this placeholder until a real editor service can route editor inputs, tabs, and selections across groups.",
+      ),
+    );
+    body.append(placeholder);
+    group.append(header, body);
+    this.secondaryEditorGroup = group;
+    return group;
+  }
+
+  private createBottomPanel(): HTMLElement {
+    const panel = this.create("section", "bottom-panel");
+    const header = this.create("div", "bottom-panel__header");
+    const tabs = this.create("div", "bottom-panel__tabs");
+    tabs.append(
+      this.createBottomPanelTab("Output", true),
+      this.createBottomPanelTab("Problems"),
+      this.createBottomPanelTab("Terminal"),
+    );
+    header.append(tabs, this.create("span", "pill", "Activity log"));
+
+    const body = this.create("div", "bottom-panel__body");
+    body.append(
+      this.create(
+        "p",
+        "section-copy",
+        "Plugin lifecycle events and host logger messages converge here until dedicated output channels are introduced.",
+      ),
+    );
+    this.logList = this.create("ul", "log-list");
+    body.append(this.logList);
+    panel.append(header, body);
+    return panel;
+  }
+
+  private createRightSidebar(): HTMLElement {
+    const sidebar = this.create("aside", "aux-sidebar");
+    const header = this.create("div", "sidebar__header");
+    const eyebrow = this.create("span", "sidebar__eyebrow", "Secondary Sidebar");
+    const title = this.create("h2", "sidebar__title", "Workbench State");
+    const copy = this.create(
+      "p",
+      "section-copy",
+      "Use the auxiliary bar for layout telemetry, API summaries, and future contextual tools.",
+    );
+    header.append(eyebrow, title, copy);
+
+    const metricsSection = this.createSection(
+      "Layout Telemetry",
+      "This region tracks the persisted workbench shape while phase 1 remains shell-first.",
+      "Persistent",
+    );
+    const groupMetric = this.createMetricRow("Editor groups", "1 group");
+    const sidebarMetric = this.createMetricRow("Visible sidebars", "left + right");
+    const panelMetric = this.createMetricRow("Bottom panel", "Visible");
+    this.auxGroupCountItem = groupMetric.value;
+    this.auxSidebarStateItem = sidebarMetric.value;
+    this.auxPanelStateItem = panelMetric.value;
+    metricsSection.body.append(groupMetric.element, sidebarMetric.element, panelMetric.element);
+
+    const apiSection = this.createSection(
+      "Current API Surface",
+      "The shell remains compatible with the current plugin contract while the workbench is being decomposed.",
+      "ctx",
+    );
+    const capabilityGrid = this.create("div", "capability-grid capability-grid--stacked");
+    capabilityGrid.append(
+      this.createCapabilityCard("ctx.ui", "Owns panels and notices until view contributions are introduced."),
+      this.createCapabilityCard("ctx.commands", "Commands render in the navbar command deck."),
+      this.createCapabilityCard("ctx.events", "Cross-plugin communication continues through the host event bus."),
+      this.createCapabilityCard("ctx.state", "Shared host state remains the easiest collaboration channel."),
+      this.createCapabilityCard("ctx.logger", "Logger output lands in the bottom panel output surface."),
+    );
+    apiSection.body.append(capabilityGrid);
+
+    const roadmapSection = this.createSection(
+      "Next Work",
+      "Do not add Monaco, search, or diagnostics until these shell primitives are stable and reusable.",
+      "Roadmap",
+    );
+    const roadmapList = this.create("ol", "guide-list");
+    roadmapList.append(
+      this.create("li", "guide-list__item", "Lift commands, views, and status items into explicit registries."),
+      this.create(
+        "li",
+        "guide-list__item",
+        "Add a shell-first editor service that owns tabs, active inputs, and split groups.",
+      ),
+      this.create(
+        "li",
+        "guide-list__item",
+        "Migrate extension panels into contribution-based views instead of direct shell mutation.",
+      ),
+    );
+    roadmapSection.body.append(roadmapList);
+
+    sidebar.append(header, metricsSection.element, apiSection.element, roadmapSection.element);
+    return sidebar;
+  }
+
+  private createStatusBar(): HTMLElement {
+    const statusBar = this.create("footer", "status-bar");
+    const statusLeft = this.create("div", "status-bar__group");
+    statusLeft.append(
+      this.create("span", "status-bar__item status-bar__item--emphasis", "Workbench ready"),
+      this.create("span", "status-bar__item", "Browser-first IDE shell"),
+      this.create("span", "status-bar__item", "Internal extension host"),
+    );
+
+    const statusRight = this.create("div", "status-bar__group");
+    this.loadedCountItem = this.create("span", "status-bar__item", "0 plugins loaded");
+    this.commandCountItem = this.create("span", "status-bar__item", "0 commands");
+    this.panelCountItem = this.create("span", "status-bar__item", "0 panels");
+    this.layoutCountItem = this.create("span", "status-bar__item", "single editor");
+    statusRight.append(this.loadedCountItem, this.commandCountItem, this.panelCountItem, this.layoutCountItem);
+    statusBar.append(statusLeft, statusRight);
+    return statusBar;
+  }
+
+  private bindResizeHandles(): void {
+    this.bindSidebarResize(this.leftResizeHandle, "left");
+    this.bindSidebarResize(this.rightResizeHandle, "right");
+    this.bindBottomPanelResize(this.bottomResizeHandle);
+  }
+
+  private bindSidebarResize(handle: HTMLDivElement, side: SidebarSide): void {
+    const view = this.document.defaultView;
+
+    if (!view) {
+      return;
+    }
+
+    handle.addEventListener("pointerdown", (event: PointerEvent) => {
+      event.preventDefault();
+
+      const startX = event.clientX;
+      const startWidth = side === "left" ? this.layoutState.leftSidebarWidth : this.layoutState.rightSidebarWidth;
+
+      const onPointerMove = (moveEvent: PointerEvent): void => {
+        const delta = side === "left" ? moveEvent.clientX - startX : startX - moveEvent.clientX;
+
+        if (side === "left") {
+          this.updateLayoutState({ leftSidebarWidth: startWidth + delta }, false);
+          return;
+        }
+
+        this.updateLayoutState({ rightSidebarWidth: startWidth + delta }, false);
+      };
+
+      const onPointerUp = (): void => {
+        view.removeEventListener("pointermove", onPointerMove);
+        view.removeEventListener("pointerup", onPointerUp);
+        this.layoutStorage.save(this.layoutState);
+      };
+
+      view.addEventListener("pointermove", onPointerMove);
+      view.addEventListener("pointerup", onPointerUp);
+    });
+  }
+
+  private bindBottomPanelResize(handle: HTMLDivElement): void {
+    const view = this.document.defaultView;
+
+    if (!view) {
+      return;
+    }
+
+    handle.addEventListener("pointerdown", (event: PointerEvent) => {
+      event.preventDefault();
+
+      const startY = event.clientY;
+      const startHeight = this.layoutState.bottomPanelHeight;
+
+      const onPointerMove = (moveEvent: PointerEvent): void => {
+        const delta = startY - moveEvent.clientY;
+        this.updateLayoutState({ bottomPanelHeight: startHeight + delta }, false);
+      };
+
+      const onPointerUp = (): void => {
+        view.removeEventListener("pointermove", onPointerMove);
+        view.removeEventListener("pointerup", onPointerUp);
+        this.layoutStorage.save(this.layoutState);
+      };
+
+      view.addEventListener("pointermove", onPointerMove);
+      view.addEventListener("pointerup", onPointerUp);
+    });
+  }
+
+  private updateLayoutState(nextState: Partial<WorkbenchLayoutState>, persist = true): void {
+    this.layoutState = mergeWorkbenchLayoutState(this.layoutState, nextState);
+    this.applyLayoutState(persist);
+  }
+
+  private applyLayoutState(persist = true): void {
+    this.leftSidebar.hidden = !this.layoutState.leftSidebarVisible;
+    this.leftResizeHandle.hidden = !this.layoutState.leftSidebarVisible;
+    this.rightSidebar.hidden = !this.layoutState.rightSidebarVisible;
+    this.rightResizeHandle.hidden = !this.layoutState.rightSidebarVisible;
+    this.bottomPanel.hidden = !this.layoutState.bottomPanelVisible;
+    this.bottomResizeHandle.hidden = !this.layoutState.bottomPanelVisible;
+    this.secondaryEditorGroup.hidden = this.layoutState.editorGroupCount !== 2;
+
+    const bodyColumns: string[] = [];
+
+    if (this.layoutState.leftSidebarVisible) {
+      bodyColumns.push(`${this.layoutState.leftSidebarWidth}px`, "10px");
+    }
+
+    bodyColumns.push("minmax(0, 1fr)");
+
+    if (this.layoutState.rightSidebarVisible) {
+      bodyColumns.push("10px", `${this.layoutState.rightSidebarWidth}px`);
+    }
+
+    this.workbenchBody.style.gridTemplateColumns = bodyColumns.join(" ");
+    this.centerStage.style.gridTemplateRows = this.layoutState.bottomPanelVisible
+      ? `minmax(0, 1fr) 10px ${this.layoutState.bottomPanelHeight}px`
+      : "minmax(0, 1fr)";
+    this.editorGroups.style.gridTemplateColumns =
+      this.layoutState.editorGroupCount === 2 ? "minmax(0, 1fr) minmax(320px, 0.76fr)" : "minmax(0, 1fr)";
+
+    this.refreshLayoutSummary();
+
+    if (persist) {
+      this.layoutStorage.save(this.layoutState);
+    }
+  }
+
+  private refreshLayoutSummary(): void {
+    const sidebars = [
+      this.layoutState.leftSidebarVisible ? "left" : "",
+      this.layoutState.rightSidebarVisible ? "right" : "",
+    ].filter((value) => value.length > 0);
+
+    this.auxGroupCountItem.textContent = this.layoutState.editorGroupCount === 2 ? "2 groups" : "1 group";
+    this.auxSidebarStateItem.textContent = sidebars.length > 0 ? sidebars.join(" + ") : "hidden";
+    this.auxPanelStateItem.textContent = this.layoutState.bottomPanelVisible
+      ? `${this.layoutState.bottomPanelHeight}px high`
+      : "hidden";
+    this.layoutCountItem.textContent = this.layoutState.editorGroupCount === 2 ? "split editors" : "single editor";
+
+    this.setWorkbenchActionState(this.toggleLeftSidebarButton, this.layoutState.leftSidebarVisible);
+    this.setWorkbenchActionState(this.toggleBottomPanelButton, this.layoutState.bottomPanelVisible);
+    this.setWorkbenchActionState(this.toggleRightSidebarButton, this.layoutState.rightSidebarVisible);
+    this.setWorkbenchActionState(this.splitEditorButton, this.layoutState.editorGroupCount === 2);
+  }
+
   private createSection(
     titleText: string,
     copyText: string,
@@ -375,22 +719,12 @@ export class AppShell implements UiApi {
     return { element: section, body };
   }
 
-  private createActivityBar(): HTMLElement {
-    const activityBar = this.create("nav", "activity-bar");
-
-    activityBar.append(
-      this.createActivityButton("EX", "Explorer", true),
-      this.createActivityButton("PL", "Plugins"),
-      this.createActivityButton("OUT", "Output"),
-    );
-
-    return activityBar;
-  }
-
-  private createActivityButton(shortLabel: string, description: string, active = false): HTMLButtonElement {
+  private createSidebarViewButton(shortLabel: string, description: string, active = false): HTMLButtonElement {
     const button = this.create(
       "button",
-      active ? "activity-bar__button activity-bar__button--active" : "activity-bar__button",
+      active
+        ? "workbench-sidebar__view-button workbench-sidebar__view-button--active"
+        : "workbench-sidebar__view-button",
       shortLabel,
     );
     button.type = "button";
@@ -399,8 +733,35 @@ export class AppShell implements UiApi {
     return button;
   }
 
+  private createWorkbenchActionButton(label: string, title: string, onClick: () => void): HTMLButtonElement {
+    const button = this.create("button", "workbench-action", label);
+    button.type = "button";
+    button.title = title;
+    button.addEventListener("click", onClick);
+    return button;
+  }
+
+  private setWorkbenchActionState(button: HTMLButtonElement, active: boolean): void {
+    button.className = active ? "workbench-action workbench-action--active" : "workbench-action";
+    button.setAttribute("aria-pressed", String(active));
+  }
+
+  private createResizeHandle(axis: "horizontal" | "vertical", label: string): HTMLDivElement {
+    const handle = this.create(
+      "div",
+      axis === "vertical" ? "resize-handle resize-handle--vertical" : "resize-handle resize-handle--horizontal",
+    );
+    handle.setAttribute("role", "separator");
+    handle.setAttribute("aria-label", label);
+    return handle;
+  }
+
   private createTab(label: string, active = false): HTMLSpanElement {
     return this.create("span", active ? "editor-tab editor-tab--active" : "editor-tab", label);
+  }
+
+  private createBottomPanelTab(label: string, active = false): HTMLSpanElement {
+    return this.create("span", active ? "bottom-panel__tab bottom-panel__tab--active" : "bottom-panel__tab", label);
   }
 
   private createOverviewCard(titleText: string, copyText: string): HTMLDivElement {
@@ -419,6 +780,20 @@ export class AppShell implements UiApi {
     return card;
   }
 
+  private createMetricRow(
+    labelText: string,
+    valueText: string,
+  ): {
+    element: HTMLDivElement;
+    value: HTMLElement;
+  } {
+    const row = this.create("div", "metric-row");
+    const label = this.create("span", "metric-label", labelText);
+    const value = this.create("strong", "metric-value", valueText);
+    row.append(label, value);
+    return { element: row, value };
+  }
+
   private createTree(
     entries: ReadonlyArray<{
       label: string;
@@ -432,7 +807,7 @@ export class AppShell implements UiApi {
     for (const entry of entries) {
       const row = this.create("div", entry.active ? "tree-row tree-row--active" : "tree-row", entry.label);
       row.style.setProperty("--tree-depth", String(entry.depth));
-      row.dataset.icon = entry.kind === "folder" ? "▸" : "•";
+      row.dataset.icon = entry.kind === "folder" ? ">" : "*";
       tree.append(row);
     }
 
@@ -447,9 +822,9 @@ export class AppShell implements UiApi {
     this.loadedCountItem.textContent = `${loadedCount} plugin${loadedCount === 1 ? "" : "s"} loaded`;
     this.commandCountItem.textContent = `${commandCount} command${commandCount === 1 ? "" : "s"}`;
     this.panelCountItem.textContent = `${panelCount} panel${panelCount === 1 ? "" : "s"}`;
-
     this.commandEmptyState.hidden = commandCount > 0;
     this.panelEmptyState.hidden = panelCount > 0;
+    this.refreshLayoutSummary();
   }
 
   private create<K extends keyof HTMLElementTagNameMap>(
