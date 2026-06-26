@@ -275,7 +275,7 @@ export class AppShell implements UiApi {
     const rail = this.create("div", "workbench-sidebar__rail");
     rail.append(
       this.createSidebarViewButton("EX", "Explorer", true),
-      this.createSidebarViewButton("PL", "Plugins"),
+      this.createSidebarViewButton("PG", "Plugins"),
     );
 
     const content = this.create("div", "workbench-sidebar__content");
