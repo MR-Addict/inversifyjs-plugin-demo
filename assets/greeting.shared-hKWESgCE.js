@@ -1,0 +1,1 @@
+var e=`plugins.greeter.total`,t=`plugins.greeter.sent`;export{t as n,e as t};
