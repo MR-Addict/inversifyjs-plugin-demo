@@ -2,22 +2,22 @@
   color-scheme: dark;
   font-family: "IBM Plex Sans", "Avenir Next", "Segoe UI", sans-serif;
   --font-mono: "IBM Plex Mono", "SFMono-Regular", Consolas, monospace;
-  --bg-page: #081018;
-  --bg-navbar: rgba(14, 22, 31, 0.94);
-  --bg-sidebar: #121c26;
-  --bg-sidebar-rail: #0d151e;
-  --bg-editor: #0e1720;
-  --bg-panel: #16202c;
-  --bg-panel-soft: #1b2633;
-  --border: #284052;
-  --border-soft: #1b2f3f;
+  --bg-page: #0d1117;
+  --bg-navbar: #111827;
+  --bg-sidebar: #111827;
+  --bg-sidebar-rail: #0f172a;
+  --bg-editor: #0f172a;
+  --bg-panel: #111827;
+  --bg-panel-soft: #1f2937;
+  --border: #334155;
+  --border-soft: #263445;
   --text: #dbe7f4;
-  --text-muted: #8ea4b8;
-  --accent: #0f8db7;
-  --accent-soft: #58d2f3;
+  --text-muted: #a5b4c8;
+  --accent: #2563eb;
+  --accent-soft: #93c5fd;
   --success: #3bb273;
   --warning: #f2a541;
-  --shadow: 0 28px 70px rgba(2, 9, 15, 0.42);
+  --shadow: none;
 }
 
 * {
@@ -30,11 +30,7 @@
 
 body {
   margin: 0;
-  background:
-    radial-gradient(circle at top left, rgba(15, 141, 183, 0.22), transparent 30%),
-    radial-gradient(circle at 80% 20%, rgba(242, 165, 65, 0.12), transparent 22%),
-    radial-gradient(circle at bottom right, rgba(88, 210, 243, 0.14), transparent 26%),
-    linear-gradient(180deg, #04080d 0%, var(--bg-page) 100%);
+  background: var(--bg-page);
   color: var(--text);
 }
 
@@ -49,9 +45,9 @@ input {
 
 .workbench {
   min-height: 100vh;
-  max-width: 1680px;
+  max-width: 1440px;
   margin: 0 auto;
-  padding: 18px;
+  padding: 14px;
   display: grid;
   grid-template-rows: auto minmax(0, 1fr) auto;
   gap: 12px;
@@ -69,12 +65,12 @@ input {
 
 .navbar {
   display: grid;
-  grid-template-columns: minmax(320px, 1.15fr) minmax(280px, 1fr) auto;
+  grid-template-columns: minmax(320px, 1fr) auto;
   align-items: start;
-  gap: 18px;
-  padding: 16px 18px;
-  border-radius: 16px;
-  background: linear-gradient(180deg, rgba(18, 28, 38, 0.98), var(--bg-navbar));
+  gap: 14px;
+  padding: 14px;
+  border-radius: 10px;
+  background: var(--bg-navbar);
 }
 
 .navbar__brand,
@@ -153,10 +149,10 @@ input {
 
 .command-strip {
   min-width: 0;
-  padding: 14px 16px;
+  padding: 12px;
   border: 1px solid var(--border);
-  border-radius: 14px;
-  background: rgba(13, 20, 29, 0.76);
+  border-radius: 10px;
+  background: var(--bg-panel-soft);
 }
 
 .command-strip__header,
@@ -209,8 +205,8 @@ input {
   overflow: hidden;
   display: grid;
   grid-template-columns: 68px minmax(0, 1fr);
-  border-radius: 18px;
-  background: linear-gradient(180deg, rgba(18, 28, 38, 0.98), var(--bg-sidebar));
+  border-radius: 10px;
+  background: var(--bg-sidebar);
 }
 
 .workbench-sidebar__rail {
@@ -232,8 +228,8 @@ input {
 }
 
 .aux-sidebar {
-  border-radius: 18px;
-  background: linear-gradient(180deg, rgba(17, 26, 37, 0.98), rgba(14, 22, 31, 0.96));
+  border-radius: 10px;
+  background: var(--bg-sidebar);
 }
 
 .sidebar__header,
@@ -257,8 +253,8 @@ input {
 .editor-stage {
   min-height: 0;
   overflow: hidden;
-  border-radius: 18px;
-  background: linear-gradient(180deg, rgba(15, 23, 32, 0.98), var(--bg-editor));
+  border-radius: 10px;
+  background: var(--bg-editor);
   display: grid;
   grid-template-rows: auto minmax(0, 1fr);
 }
@@ -310,8 +306,8 @@ input {
   min-height: 0;
   overflow: hidden;
   border: 1px solid var(--border);
-  border-radius: 16px;
-  background: rgba(22, 33, 45, 0.86);
+  border-radius: 10px;
+  background: rgba(22, 33, 45, 0.72);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
 }
 
@@ -576,9 +572,9 @@ input {
 
 .panel-empty {
   padding: 16px;
-  border: 1px dashed var(--border);
-  border-radius: 14px;
-  background: rgba(9, 15, 21, 0.54);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: rgba(9, 15, 21, 0.4);
   display: grid;
   gap: 8px;
 }
@@ -632,8 +628,8 @@ input {
   min-height: 0;
   overflow: hidden;
   padding: 12px 16px 16px;
-  border-radius: 18px;
-  background: linear-gradient(180deg, rgba(12, 20, 28, 0.96), rgba(9, 16, 22, 0.98));
+  border-radius: 10px;
+  background: var(--bg-editor);
 }
 
 .log-list {
@@ -705,8 +701,8 @@ input {
   gap: 12px 18px;
   flex-wrap: wrap;
   padding: 10px 14px;
-  border-radius: 12px;
-  background: linear-gradient(90deg, #0e5f80 0%, #1389b1 100%);
+  border-radius: 10px;
+  background: #1e293b;
   color: #fff;
 }
 

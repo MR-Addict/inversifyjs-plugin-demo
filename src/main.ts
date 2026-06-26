@@ -32,7 +32,7 @@ container.bind<WorkbenchLayoutStorage>(TYPES.WorkbenchLayoutStorage).to(Workbenc
 
 const shell = container.get<AppShell>(TYPES.AppShell);
 shell.mount(APP_NAME, APP_DESCRIPTION);
-shell.appendLog("info", "Extension host bootstrapped. Load Greeter, then Dashboard, to watch plugins collaborate.");
+shell.appendLog("info", "App ready. Load a plugin to get started.");
 
 const pluginManager = container.get<PluginManager>(TYPES.PluginManager);
 
@@ -42,7 +42,7 @@ for (const entry of pluginCatalog) {
   });
 }
 
-shell.showNotice("Start with Greeter, then load Dashboard to see shared state and events in action.", {
+shell.showNotice("Load a plugin from the left panel to start.", {
   kind: "info",
   timeoutMs: 4500,
 });

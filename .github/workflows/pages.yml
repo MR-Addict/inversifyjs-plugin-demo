@@ -28,13 +28,10 @@ jobs:
       - name: Build project
         run: pnpm build
 
-      - name: Create public directory
-        run: mkdir -p public && cp styles.css public && cp index.html public && cp -r build public
-
       - name: Deploy to github pages
         uses: crazy-max/ghaction-github-pages@v4.2.0
         with:
           target_branch: gh-pages
-          build_dir: ./public
+          build_dir: dist
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

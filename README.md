@@ -9,20 +9,19 @@ A small browser demo that shows how to build a plugin-capable app with:
 ## Run the demo
 
 ```bash
-npm install
-npm run build
-npm run serve
+pnpm install
+pnpm dev
 ```
 
-Then open `http://localhost:4173`.
+Then open `http://localhost:5173`.
 
-The browser-ready assets are written to `build/`. The TypeScript compiler output in `dist/` remains an intermediate step so decorator metadata is preserved for Inversify.
+For a production bundle, run `pnpm run build`. To preview the production build locally, run `pnpm run serve`.
 
 ## What the demo shows
 
 1. The host app exposes a typed `ctx` object to every plugin.
 2. Plugins are loaded dynamically with `import()`.
-3. The build emits a separate browser module for each `*.plugin.ts` file.
+3. Vite code-splits plugin modules so they are fetched on demand.
 4. A plugin can optionally export an Inversify `ContainerModule`.
 5. Plugins use `ctx.ui`, `ctx.commands`, `ctx.state`, `ctx.events`, and `ctx.logger` to implement their behavior.
 
@@ -66,7 +65,7 @@ When a plugin is loaded, the host:
 3. calls `plugin.activate(ctx)`;
 4. keeps the returned cleanup handle so it can unload the plugin later.
 
-During `npm run build`, the app bundle is written to `build/main.js` and each plugin entry is emitted under `build/plugins/`. The browser only fetches a plugin module when its catalog entry is loaded.
+During `npm run build`, Vite writes browser-ready assets to `build/`. The browser only fetches a plugin module when its catalog entry is loaded.
 
 ## The `ctx` API
 
