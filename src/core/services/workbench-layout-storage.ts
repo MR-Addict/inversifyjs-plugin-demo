@@ -17,8 +17,8 @@ const DEFAULT_LAYOUT_STATE: WorkbenchLayoutState = {
   bottomPanelVisible: true,
   editorGroupCount: 1,
   leftSidebarVisible: true,
-  leftSidebarWidth: 320,
-  rightSidebarVisible: true,
+  leftSidebarWidth: 280,
+  rightSidebarVisible: false,
   rightSidebarWidth: 300,
 };
 

@@ -222,28 +222,18 @@ export class AppShell implements UiApi {
   private createNavbar(appName: string, description: string): HTMLElement {
     const navbar = this.create("header", "navbar");
     const brand = this.create("div", "navbar__brand");
-    const eyebrow = this.create("span", "navbar__eyebrow", "Browser IDE Workbench");
+    const eyebrow = this.create("span", "navbar__eyebrow", "Plugin Demo");
     const title = this.create("h1", "navbar__title", appName);
     const copy = this.create("p", "navbar__description", description);
-    const meta = this.create("div", "navbar__meta");
-
-    meta.append(
-      this.create("span", "pill", "InversifyJS composition"),
-      this.create("span", "pill", "Shell-first editor"),
-      this.create("span", "pill", "Internal extensions"),
-    );
-    brand.append(eyebrow, title, copy, meta);
+    brand.append(eyebrow, title, copy);
 
     const commandDeck = this.create("div", "command-strip");
     const commandDeckHeader = this.create("div", "command-strip__header");
-    commandDeckHeader.append(
-      this.create("span", "navbar__eyebrow", "Command Deck"),
-      this.create("span", "pill", "Contribution surface"),
-    );
+    commandDeckHeader.append(this.create("span", "navbar__eyebrow", "Commands"));
     this.commandEmptyState = this.create(
       "p",
       "command-strip__empty",
-      "Load an extension to contribute editor actions here.",
+      "Load a plugin to see commands here.",
     );
     this.commandBar = this.create("div", "command-bar");
     commandDeck.append(commandDeckHeader, this.commandEmptyState, this.commandBar);
@@ -285,64 +275,24 @@ export class AppShell implements UiApi {
     const rail = this.create("div", "workbench-sidebar__rail");
     rail.append(
       this.createSidebarViewButton("EX", "Explorer", true),
-      this.createSidebarViewButton("XT", "Extensions"),
-      this.createSidebarViewButton("SC", "Source control"),
+      this.createSidebarViewButton("PL", "Plugins"),
     );
 
     const content = this.create("div", "workbench-sidebar__content");
     const header = this.create("div", "sidebar__header");
-    const eyebrow = this.create("span", "sidebar__eyebrow", "Primary Sidebar");
-    const title = this.create("h2", "sidebar__title", "Explorer");
-    const copy = this.create(
-      "p",
-      "section-copy",
-      "Use the left sidebar for the workspace tree, extension catalog, and shell-first navigation.",
-    );
+    const eyebrow = this.create("span", "sidebar__eyebrow", "Plugins");
+    const title = this.create("h2", "sidebar__title", "Extension Catalog");
+    const copy = this.create("p", "section-copy", "Load or unload plugins from this list.");
     header.append(eyebrow, title, copy);
 
-    const workspaceSection = this.createSection(
-      "Workspace",
-      "The new workbench is separated into platform, workbench, and extension responsibilities.",
-      "src/",
-    );
-    workspaceSection.body.append(
-      this.createTree([
-        { label: "src", depth: 0, kind: "folder" },
-        { label: "core", depth: 1, kind: "folder" },
-        { label: "services/app-shell.ts", depth: 2, kind: "file", active: true },
-        { label: "services/workbench-layout-storage.ts", depth: 2, kind: "file" },
-        { label: "plugins", depth: 1, kind: "folder" },
-        { label: "greeter.plugin.ts", depth: 2, kind: "file" },
-        { label: "dashboard.plugin.ts", depth: 2, kind: "file" },
-      ]),
-    );
-
     const extensionsSection = this.createSection(
-      "Extensions",
-      "Internal extensions still load dynamically, but the shell now looks and behaves like an IDE workbench.",
-      "Runtime catalog",
+      "Available Plugins",
+      "Each plugin can add commands, state updates, and UI panels.",
     );
     this.pluginCatalog = this.create("div", "plugin-grid");
     extensionsSection.body.append(this.pluginCatalog);
 
-    const guideSection = this.createSection(
-      "Phase 1",
-      "Stabilize layout, contributions, and shell ergonomics before adding Monaco or a file system.",
-      "Current",
-    );
-    const guideList = this.create("ol", "guide-list");
-    guideList.append(
-      this.create("li", "guide-list__item", "Toggle left, bottom, and right workbench regions from the navbar."),
-      this.create("li", "guide-list__item", "Resize the sidebars and bottom panel to shape the IDE layout."),
-      this.create(
-        "li",
-        "guide-list__item",
-        "Split the editor area to validate multi-group behavior before a real editor engine lands.",
-      ),
-    );
-    guideSection.body.append(guideList);
-
-    content.append(header, workspaceSection.element, extensionsSection.element, guideSection.element);
+    content.append(header, extensionsSection.element);
     sidebar.append(rail, content);
     return sidebar;
   }
@@ -352,17 +302,8 @@ export class AppShell implements UiApi {
     const editorStage = this.create("section", "editor-stage");
     const editorHeader = this.create("div", "editor-stage__header");
     const editorTabs = this.create("div", "editor-tabs");
-    editorTabs.append(
-      this.createTab("workbench.layout.ts", true),
-      this.createTab("extensions.runtime.ts"),
-      this.createTab("output.channel.log"),
-    );
-    const editorMeta = this.create("div", "editor-stage__meta");
-    editorMeta.append(
-      this.create("span", "pill", "Mock editor content"),
-      this.create("span", "pill", "Split-capable groups"),
-    );
-    editorHeader.append(editorTabs, editorMeta);
+    editorTabs.append(this.createTab("Workspace", true));
+    editorHeader.append(editorTabs);
 
     this.editorGroups = this.create("div", "editor-groups");
     this.editorGroups.append(this.createPrimaryEditorGroup(), this.createSecondaryEditorGroup());
@@ -379,52 +320,19 @@ export class AppShell implements UiApi {
     const header = this.create("div", "editor-group__header");
     const titleBlock = this.create("div", "editor-group__title-block");
     const title = this.create("h2", "section-title", "Editor Group 1");
-    const copy = this.create(
-      "p",
-      "section-copy",
-      "Extension panels still mount here, but the surrounding shell is now aligned to an IDE layout.",
-    );
+    const copy = this.create("p", "section-copy", "Plugin panels appear here.");
     titleBlock.append(title, copy);
     header.append(titleBlock, this.create("span", "pill", "Primary"));
 
     const body = this.create("div", "editor-group__body");
-    const welcome = this.create("section", "editor-welcome");
-    const welcomeEyebrow = this.create("span", "sidebar__eyebrow", "Workbench Overview");
-    const welcomeTitle = this.create("h3", "editor-welcome__title", "Shell-first editor region");
-    const welcomeCopy = this.create(
-      "p",
-      "editor-welcome__copy",
-      "This area is intentionally using mock editor content while the layout, contribution model, and lifecycle APIs stabilize.",
-    );
-    welcome.append(welcomeEyebrow, welcomeTitle, welcomeCopy);
-
-    const overview = this.create("div", "overview-grid");
-    overview.append(
-      this.createOverviewCard(
-        "Persist Layout",
-        "Sidebar widths, bottom panel height, and split-group mode survive reloads through the new layout storage service.",
-      ),
-      this.createOverviewCard(
-        "Keep Plugins Running",
-        "The current ctx.ui, ctx.commands, ctx.events, ctx.state, and ctx.logger surfaces still work while the workbench evolves.",
-      ),
-      this.createOverviewCard(
-        "Prepare VS Code-style APIs",
-        "This shell gives us stable regions for future commands, menus, views, status items, and editor contributions.",
-      ),
-    );
 
     this.panelEmptyState = this.create("div", "panel-empty");
     const panelEmptyTitle = this.create("strong", "panel-empty__title", "No active editor contributions");
-    const panelEmptyCopy = this.create(
-      "p",
-      "muted",
-      "Load Greeter first, then Dashboard, to populate this editor region with extension-owned panels.",
-    );
+    const panelEmptyCopy = this.create("p", "muted", "Load a plugin to populate this area.");
     this.panelEmptyState.append(panelEmptyTitle, panelEmptyCopy);
 
     this.panelHost = this.create("div", "panel-host");
-    body.append(welcome, overview, this.panelEmptyState, this.panelHost);
+    body.append(this.panelEmptyState, this.panelHost);
     group.append(header, body);
     return group;
   }
@@ -434,20 +342,16 @@ export class AppShell implements UiApi {
     const header = this.create("div", "editor-group__header");
     const titleBlock = this.create("div", "editor-group__title-block");
     const title = this.create("h2", "section-title", "Editor Group 2");
-    const copy = this.create("p", "section-copy", "Reserved for future preview, diff, or auxiliary editor surfaces.");
+    const copy = this.create("p", "section-copy", "Optional second editor view.");
     titleBlock.append(title, copy);
     header.append(titleBlock, this.create("span", "pill", "Secondary"));
 
     const body = this.create("div", "editor-group__body");
     const placeholder = this.create("div", "editor-placeholder");
     placeholder.append(
-      this.create("span", "sidebar__eyebrow", "Split Ready"),
-      this.create("h3", "editor-welcome__title", "Second editor group is available"),
-      this.create(
-        "p",
-        "editor-welcome__copy",
-        "Keep this placeholder until a real editor service can route editor inputs, tabs, and selections across groups.",
-      ),
+      this.create("span", "sidebar__eyebrow", "Split view"),
+      this.create("h3", "editor-welcome__title", "Second editor group"),
+      this.create("p", "editor-welcome__copy", "Enable split mode when you need more space."),
     );
     body.append(placeholder);
     group.append(header, body);
@@ -483,19 +387,14 @@ export class AppShell implements UiApi {
   private createRightSidebar(): HTMLElement {
     const sidebar = this.create("aside", "aux-sidebar");
     const header = this.create("div", "sidebar__header");
-    const eyebrow = this.create("span", "sidebar__eyebrow", "Secondary Sidebar");
-    const title = this.create("h2", "sidebar__title", "Workbench State");
-    const copy = this.create(
-      "p",
-      "section-copy",
-      "Use the auxiliary bar for layout telemetry, API summaries, and future contextual tools.",
-    );
+    const eyebrow = this.create("span", "sidebar__eyebrow", "Details");
+    const title = this.create("h2", "sidebar__title", "Current Layout");
+    const copy = this.create("p", "section-copy", "Quick summary of the active workspace layout.");
     header.append(eyebrow, title, copy);
 
     const metricsSection = this.createSection(
-      "Layout Telemetry",
-      "This region tracks the persisted workbench shape while phase 1 remains shell-first.",
-      "Persistent",
+      "Layout",
+      "Current editor and panel state.",
     );
     const groupMetric = this.createMetricRow("Editor groups", "1 group");
     const sidebarMetric = this.createMetricRow("Visible sidebars", "left + right");
@@ -505,43 +404,7 @@ export class AppShell implements UiApi {
     this.auxPanelStateItem = panelMetric.value;
     metricsSection.body.append(groupMetric.element, sidebarMetric.element, panelMetric.element);
 
-    const apiSection = this.createSection(
-      "Current API Surface",
-      "The shell remains compatible with the current plugin contract while the workbench is being decomposed.",
-      "ctx",
-    );
-    const capabilityGrid = this.create("div", "capability-grid capability-grid--stacked");
-    capabilityGrid.append(
-      this.createCapabilityCard("ctx.ui", "Owns panels and notices until view contributions are introduced."),
-      this.createCapabilityCard("ctx.commands", "Commands render in the navbar command deck."),
-      this.createCapabilityCard("ctx.events", "Cross-plugin communication continues through the host event bus."),
-      this.createCapabilityCard("ctx.state", "Shared host state remains the easiest collaboration channel."),
-      this.createCapabilityCard("ctx.logger", "Logger output lands in the bottom panel output surface."),
-    );
-    apiSection.body.append(capabilityGrid);
-
-    const roadmapSection = this.createSection(
-      "Next Work",
-      "Do not add Monaco, search, or diagnostics until these shell primitives are stable and reusable.",
-      "Roadmap",
-    );
-    const roadmapList = this.create("ol", "guide-list");
-    roadmapList.append(
-      this.create("li", "guide-list__item", "Lift commands, views, and status items into explicit registries."),
-      this.create(
-        "li",
-        "guide-list__item",
-        "Add a shell-first editor service that owns tabs, active inputs, and split groups.",
-      ),
-      this.create(
-        "li",
-        "guide-list__item",
-        "Migrate extension panels into contribution-based views instead of direct shell mutation.",
-      ),
-    );
-    roadmapSection.body.append(roadmapList);
-
-    sidebar.append(header, metricsSection.element, apiSection.element, roadmapSection.element);
+    sidebar.append(header, metricsSection.element);
     return sidebar;
   }
 
